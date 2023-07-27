@@ -1,5 +1,5 @@
-FROM postgres:alpine
-#RUN apk --update add postgresql-client
-ENTRYPOINT [ "/bin/sh","pg_dump abc.com" ]
+FROM node:alpine
+RUN apk --update add postgresql-client
+ENTRYPOINT [ "node","migrate.js" ]
 #CMD ["pg_dump","-O",$fromDB,"|","psql",$toDB]
 
