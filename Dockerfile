@@ -10,4 +10,4 @@
 FROM alpine:3.16
 RUN apk --update add postgresql-client
 COPY importpg.sh /
-CMD [ "importpg.sh",$fromDB,$toDB ]
+CMD [ "importpg.sh","$fromDB","$toDB" ]
