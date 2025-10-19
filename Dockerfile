@@ -8,7 +8,6 @@ RUN apt-get update && \
         curl \
         gnupg \
         lz4 \
-        liblz4-tool \ 
         jq \
         openssh-client \
         openssh-server \
