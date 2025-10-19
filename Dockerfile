@@ -8,8 +8,13 @@ RUN apt-get update && \
         curl \
         gnupg \
         lz4 \
+        liblz4-tool \ 
+        jq \
         openssh-client \
         openssh-server \
+        awscli \
+        parallel \
+        micro \
         pgcopydb && \
     curl -L https://fly.io/install.sh | sh && \
     ln -s /root/.fly/bin/flyctl /usr/local/bin/fly && \
