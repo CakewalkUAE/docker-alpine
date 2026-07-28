@@ -1,13 +1,8 @@
 FROM alpine:3.20
 
-WORKDIR /app
+RUN apk add --no-cache redis curl openssl
 
-# Install dependencies: redis (redis-cli, redis-check-rdb/aof, redis-benchmark), curl, openssl (for TLS-enabled redis endpoints)
-RUN apk add --no-cache \
-        redis \
-        curl \
-        openssl
+EXPOSE 6379
 
-COPY . .
-
-ENTRYPOINT ["/bin/sh"]
+# bind 0.0.0.0 + protected-mode off: container has no loopback-only clients, network access is controlled at the Fly/deploy layer
+CMD ["redis-server", "--bind", "0.0.0.0", "--protected-mode", "no"]
