@@ -1,0 +1,6 @@
+*.env
+.env*
+*.rdb
+*.jsonl
+*.jsonl.gz
+*.local.sh
