@@ -1,7 +1,7 @@
-name: Build redis-teleporter
+name: Build for FlyDeck
 on:
   push:
-    branches: [master]
+    branches: [redis-teleporter]
   workflow_dispatch:
     inputs:
       context:
@@ -18,12 +18,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      IMAGE: redis-teleporter:sha-${{ github.sha }}
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+      IMAGE: registry.fly.io/redis-teleporter:sha-${{ github.sha }}
       CONTEXT: ${{ inputs.context || '.' }}
       DOCKERFILE: ${{ inputs.dockerfile || 'Dockerfile' }}
       PORT: ${{ inputs.port || '80' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: superfly/flyctl-actions/setup-flyctl@master
       # buildx + GHA layer cache so repeat builds reuse unchanged layers (Docker path).
       - uses: docker/setup-buildx-action@v3
       - uses: crazy-max/ghaction-github-runtime@v3
@@ -34,18 +36,21 @@ jobs:
             envsubst < .npmrc > .npmrc.tmp && mv .npmrc.tmp .npmrc
           fi
 
-      - name: Build image
+      - name: Build & push image
         run: |
+          flyctl auth docker
+
           RESOLVED_DOCKERFILE="$DOCKERFILE"
           if [ "$DOCKERFILE" = "Dockerfile" ] && [ "$CONTEXT" != "." ] && [ ! -f "Dockerfile" ] && [ -f "$CONTEXT/Dockerfile" ]; then
             RESOLVED_DOCKERFILE="$CONTEXT/Dockerfile"
           fi
           if [ -f "$RESOLVED_DOCKERFILE" ]; then
             echo "Building with Dockerfile: $RESOLVED_DOCKERFILE (context: $CONTEXT)"
-            docker buildx build -f "$RESOLVED_DOCKERFILE" -t "$IMAGE" --cache-from type=gha --cache-to type=gha,mode=max "$CONTEXT"
+            docker buildx build -f "$RESOLVED_DOCKERFILE" -t "$IMAGE" --cache-from type=gha --cache-to type=gha,mode=max --push "$CONTEXT"
           else
             echo "No Dockerfile found — using Nixpacks (auto-detects your stack)"
             rm -f .dockerignore
             curl -sSL https://nixpacks.com/install.sh | bash
             nixpacks build "$CONTEXT" --name "redis-teleporter" --tag "$IMAGE"
+            docker push "$IMAGE"
           fi
